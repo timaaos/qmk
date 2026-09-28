@@ -29,7 +29,8 @@
 - `vial.json`: layout definition for the Vial app.
 
 ## Flashing
-- Enter bootloader mode by double-tapping the reset button; an `RPI-RP2` drive appears.
+- `scripts/flash.sh`: downloads the latest successful CI build (`gh run download`) and walks through flashing both halves (waits for the `RPI-RP2` drive, copies the matching `.uf2`). Requires `gh` authenticated against this repo.
+- Manual alternative: enter bootloader mode by double-tapping the reset button; an `RPI-RP2` drive appears.
 - Copy the matching `.uf2` onto that drive; the half reboots automatically.
 - Then load the saved `.vil` in Vial (File → Load saved layout) if the remaps were reset.
 
