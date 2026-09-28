@@ -76,59 +76,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #include "logo.h"
 
-// Below this typing speed the logo is static; above it the rays animate,
-// and the faster you type the faster they run.
-#define LOGO_ANIM_WPM_MIN 5
-
-static void render_logo(void) {
-    // Logo at the top of the vertical (270-rotated) display: text lines 0..3.
-    // oled_write_raw_P writes from the start of the logical buffer, which is
-    // exactly the top 32x32 area in the rotated 32x128 layout.
-    static uint8_t  frame       = 0;
-    static uint32_t frame_timer = 0;
-
-    uint8_t wpm = get_current_wpm();
-    if (wpm < LOGO_ANIM_WPM_MIN) {
-        frame = 0;
-        oled_write_raw_P(logo_frame0, LOGO_BYTES);
-        return;
-    }
-
-    // Frame interval: ~335 ms at slow typing, shrinking to 60 ms at 97+ WPM.
-    uint16_t interval = (wpm >= 97) ? 60 : (350 - 3 * (uint16_t)wpm);
-    if (timer_elapsed32(frame_timer) > interval) {
-        frame_timer = timer_read32();
-        frame       = (frame + 1) % LOGO_ANIM_FRAMES;
-    }
-    oled_write_raw_P(logo_anim[frame], LOGO_BYTES);
-}
-
-static void render_status_right(void) {
-    // Vertical layout, 5 chars per line, 16 lines total. Logo owns lines 0-3.
-    led_t led_usb_state = host_keyboard_led_state();
-
-    oled_set_cursor(0, 7);
-    oled_write_P(PSTR("WPM"), false);
-
-    // Manual 3-digit formatting instead of snprintf: avoids pulling in the
-    // heavier libc vararg printf implementation, which costs far more flash
-    // than this is worth for a single number.
-    uint8_t wpm = get_current_wpm();
-    char    wpm_str[4];
-    wpm_str[0] = (wpm >= 100) ? ('0' + (wpm / 100) % 10) : ' ';
-    wpm_str[1] = (wpm >= 10)  ? ('0' + (wpm / 10) % 10)  : ' ';
-    wpm_str[2] = '0' + (wpm % 10);
-    wpm_str[3] = '\0';
-    oled_set_cursor(0, 8);
-    oled_write(wpm_str, false);
-
-    // NumLock status at the very bottom of the 16-line display.
-    oled_set_cursor(0, 14);
-    oled_write_P(PSTR("NUM"), false);
-    oled_set_cursor(0, 15);
-    oled_write_P(led_usb_state.num_lock ? PSTR("ON ") : PSTR("OFF"), false);
-}
-
 static void print_status_narrow(void) {
   // Print current mode
   oled_write_P(PSTR("\n\n"), false);
@@ -167,7 +114,7 @@ static void print_status_narrow(void) {
       default:
           oled_write_ln_P(PSTR("Undef"), false);
   }
-  // CapsLock status at the very bottom, same style as NumLock on the right.
+  // CapsLock status at the very bottom of the 16-line display.
   led_t led_usb_state = host_keyboard_led_state();
   oled_set_cursor(0, 14);
   oled_write_P(PSTR("CAPS"), false);
@@ -184,8 +131,7 @@ bool oled_task_user(void) {
   if (is_keyboard_master()) {
       print_status_narrow();
   } else {
-      render_logo();
-      render_status_right();
+      oled_write_raw_P(lily58_logo, LOGO_BYTES);
   }
 return false;
 }

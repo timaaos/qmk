@@ -35,12 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef LOCKING_RESYNC_ENABLE
 #define NO_ACTION_ONESHOT
 
-/* Split sync: master pushes WPM and host LED state (NumLock etc.) to the
- * slave half, so the right OLED can display them. These are config defines,
- * not rules.mk options. */
-#define SPLIT_WPM_ENABLE
-#define SPLIT_LED_STATE_ENABLE
-
 /* Select hand configuration */
 
 /* Handedness: stored in EEPROM (EE_HANDS). Flash once with the
