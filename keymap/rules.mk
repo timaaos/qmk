@@ -1,0 +1,20 @@
+VIA_ENABLE = yes
+VIAL_ENABLE = yes
+OLED_ENABLE = yes
+MOUSEKEY_ENABLE = yes
+EXTRAKEY_ENABLE = yes
+WPM_ENABLE = yes
+# SPLIT_WPM / SPLIT_LED_STATE moved to config.h — they are #defines, not build options
+TAP_DANCE_ENABLE = yes
+COMBO_ENABLE = yes
+GRAVE_ESC_ENABLE = no
+MAGIC_ENABLE = no
+BOOTMAGIC_ENABLE = no
+
+COMMAND_ENABLE = no
+CONSOLE_ENABLE = no
+
+QMK_SETTINGS = yes
+LTO_ENABLE = yes
+
+KEY_OVERRIDE_ENABLE = no

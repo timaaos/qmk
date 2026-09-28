@@ -1,0 +1,55 @@
+name: Build Lily58
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  # Official Vial firmware source, pinned to one exact version so builds never change unexpectedly
+  VIAL_QMK_COMMIT: d2e952ee92b58fe6a6ea571e137e6fc33e1fead4
+  QMK_HOME: ${{ github.workspace }}/vial-qmk
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Get my keymap
+        uses: actions/checkout@v4
+        with:
+          path: mine
+
+      - name: Get official Vial-QMK
+        run: |
+          mkdir vial-qmk && cd vial-qmk
+          git init -q
+          git remote add origin https://github.com/vial-kb/vial-qmk.git
+          git fetch -q --depth 1 origin "$VIAL_QMK_COMMIT"
+          git checkout -q FETCH_HEAD
+          git submodule update --init --depth 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+          pip install qmk -r vial-qmk/requirements.txt
+
+      - name: Put my keymap in place
+        run: cp -r mine/keymap vial-qmk/keyboards/lily58/keymaps/mine
+
+      - name: Build left and right halves
+        working-directory: vial-qmk
+        run: |
+          mkdir out
+          for side in LEFT RIGHT; do
+            rm -rf .build
+            make lily58/rev1:mine CONVERT_TO=rp2040_ce EXTRAFLAGS=-DINIT_EE_HANDS_$side
+            mv lily58_rev1_mine*.uf2 out/lily58_$(echo $side | tr A-Z a-z).uf2
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lily58-firmware
+          path: vial-qmk/out/*.uf2
